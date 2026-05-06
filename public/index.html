@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0d0d1a">
+  <title>Pong Abilities</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+
+<!-- ── MENU SCREEN ── -->
+<div id="screen-menu" class="screen active">
+  <div class="menu-inner">
+    <h1 class="logo">PONG<span class="logo-accent">ABILITIES</span></h1>
+    <p class="tagline">CHOOSE YOUR POWER. RULE THE COURT.</p>
+    <div class="menu-buttons">
+      <button class="btn-primary" id="btn-vs-ai">VS AI</button>
+      <button class="btn-secondary" id="btn-online">ONLINE 1v1</button>
+    </div>
+    <button class="btn-mute" id="btn-mute" title="Toggle sound">🔊</button>
+  </div>
+</div>
+
+<!-- ── ABILITY SELECT SCREEN ── -->
+<div id="screen-ability" class="screen">
+  <div class="ability-inner">
+    <h2 class="section-title">CHOOSE YOUR ABILITY</h2>
+    <p class="section-sub">SELECT ONE POWER FOR THIS MATCH</p>
+    <div class="ability-grid" id="ability-grid"></div>
+    <div class="diff-section">
+      <span class="diff-label">AI DIFFICULTY</span>
+      <div class="diff-btns">
+        <button class="diff-btn" data-d="easy">EASY</button>
+        <button class="diff-btn active" data-d="medium">MEDIUM</button>
+        <button class="diff-btn" data-d="hard">HARD</button>
+      </div>
+    </div>
+    <button class="btn-primary" id="btn-start-match">START MATCH</button>
+    <button class="btn-back" id="btn-back-menu">← BACK</button>
+  </div>
+</div>
+
+<!-- ── GAME SCREEN ── -->
+<div id="screen-game" class="screen">
+  <div class="game-wrap">
+    <div class="hud-top">
+      <div class="score-block left">
+        <span class="score-label">CPU</span>
+        <span class="score-num" id="score-ai">0</span>
+      </div>
+      <div class="hud-center">
+        <span class="win-target">FIRST TO 7</span>
+      </div>
+      <div class="score-block right">
+        <span class="score-num" id="score-player">0</span>
+        <span class="score-label">YOU</span>
+      </div>
+    </div>
+
+    <div class="canvas-wrap" id="canvas-wrap">
+      <canvas id="game-canvas" width="900" height="550"></canvas>
+      <div id="crt-overlay"></div>
+
+      <!-- Ability HUDs drawn outside canvas for CSS ring animations -->
+      <div class="ability-hud left-hud" id="hud-ai">
+        <div class="ability-icon" id="ai-ability-icon"></div>
+        <svg class="cooldown-ring" viewBox="0 0 44 44">
+          <circle class="ring-bg" cx="22" cy="22" r="18"/>
+          <circle class="ring-fill" id="ai-ring" cx="22" cy="22" r="18"/>
+        </svg>
+        <span class="cooldown-label" id="ai-cooldown-label"></span>
+      </div>
+      <div class="ability-hud right-hud" id="hud-player">
+        <div class="ability-icon" id="player-ability-icon"></div>
+        <svg class="cooldown-ring" viewBox="0 0 44 44">
+          <circle class="ring-bg" cx="22" cy="22" r="18"/>
+          <circle class="ring-fill" id="player-ring" cx="22" cy="22" r="18"/>
+        </svg>
+        <span class="cooldown-label" id="player-cooldown-label"></span>
+      </div>
+
+      <div id="ability-flash" class="ability-flash"></div>
+      <div id="space-hint" class="space-hint">SPACE to use ability</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── ONLINE COMING SOON ── -->
+<div id="screen-online" class="screen">
+  <div class="coming-soon">
+    <div class="cs-icon">🌐</div>
+    <h2>ONLINE 1v1</h2>
+    <p>Coming soon — infrastructure is ready,<br>matchmaking launching next update.</p>
+    <button class="btn-back" id="btn-back-online">← BACK</button>
+  </div>
+</div>
+
+<!-- ── GAME OVER SCREEN ── -->
+<div id="screen-gameover" class="screen">
+  <div class="gameover-inner">
+    <div class="go-icon" id="go-icon"></div>
+    <h2 id="go-title">YOU WIN!</h2>
+    <div class="go-score" id="go-score">7 — 3</div>
+    <div class="go-buttons">
+      <button class="btn-primary" id="btn-replay">PLAY AGAIN</button>
+      <button class="btn-secondary" id="btn-go-menu">MAIN MENU</button>
+    </div>
+  </div>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/abilities.js"></script>
+<script src="/audio.js"></script>
+<script src="/ui.js"></script>
+<script src="/game.js"></script>
+</body>
+</html>
