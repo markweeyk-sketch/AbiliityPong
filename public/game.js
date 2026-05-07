@@ -126,10 +126,14 @@ const Game = (() => {
     const hint = document.getElementById('space-hint');
     if (!hint) return;
     if (!pointerLocked && running) {
-      hint.textContent = 'Click to grab mouse control';
+      hint.textContent = '🖱 Click canvas to take control';
       hint.style.opacity = '1';
-    } else if (pointerLocked) {
+      hint.style.fontSize = '13px';
+      hint.style.color = 'rgba(167,139,250,0.9)';
+    } else {
       hint.textContent = 'SPACE to activate ability';
+      hint.style.fontSize = '';
+      hint.style.color = '';
       hint.style.opacity = state?.playerAbility?.ready ? '1' : '0';
     }
   }
@@ -508,7 +512,9 @@ const Game = (() => {
   function _endGame(playerWon) {
     running = false;
     cancelAnimationFrame(animId);
-    if (document.pointerLockElement === canvas) document.exitPointerLock();
+    // Don't call exitPointerLock() — it triggers a browser cooldown that
+    // blocks re-locking. The lock releases naturally when the user navigates
+    // away or presses Escape.
     UI.showGameOver(playerWon, state.playerScore, state.aiScore);
   }
 
@@ -531,9 +537,9 @@ const Game = (() => {
     lastTime = performance.now();
     animId   = requestAnimationFrame(_loop);
 
-    // Request pointer lock immediately — browser requires a user gesture,
-    // and start() is always called from a button click, so this is valid.
-    canvas.requestPointerLock();
+    // Don't call requestPointerLock() here — browsers only reliably grant it
+    // from a direct interaction on the canvas itself. Show the click prompt instead.
+    _updateLockHint();
 
     if (ONLINE_MODE) _initSocket();
   }
