@@ -300,6 +300,7 @@ const Game = (() => {
   // ── Draw ──
   function _draw() {
     const online = isOnline() && onlineState;
+    if (!online && !state) return;
 
     // Resolve draw values from whichever state source is active
     const ball      = online ? onlineState.ball    : state.ball;
