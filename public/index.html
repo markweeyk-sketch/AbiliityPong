@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<!-- ── MENU SCREEN ── -->
+<!-- ── MENU ── -->
 <div id="screen-menu" class="screen active">
   <div class="menu-inner">
     <h1 class="logo">PONG<span class="logo-accent">ABILITIES</span></h1>
@@ -19,43 +19,105 @@
       <button class="btn-primary" id="btn-vs-ai">VS AI</button>
       <button class="btn-secondary" id="btn-online">ONLINE 1v1</button>
     </div>
-    <button class="btn-mute" id="btn-mute" title="Toggle sound">🔊</button>
   </div>
+  <button class="btn-mute" id="btn-mute" title="Toggle sound">🔊</button>
 </div>
 
-<!-- ── ABILITY SELECT SCREEN ── -->
+<!-- ── ABILITY SELECT ── -->
 <div id="screen-ability" class="screen">
   <div class="ability-inner">
     <h2 class="section-title">CHOOSE YOUR ABILITY</h2>
     <p class="section-sub">SELECT ONE POWER FOR THIS MATCH</p>
     <div class="ability-grid" id="ability-grid"></div>
-    <div class="diff-section">
-      <span class="diff-label">AI DIFFICULTY</span>
-      <div class="diff-btns">
-        <button class="diff-btn" data-d="easy">EASY</button>
-        <button class="diff-btn active" data-d="medium">MEDIUM</button>
-        <button class="diff-btn" data-d="hard">HARD</button>
+
+    <div class="settings-row">
+      <!-- Difficulty (hidden in online mode) -->
+      <div class="setting-group" id="diff-group">
+        <span class="setting-label">DIFFICULTY</span>
+        <div class="setting-btns">
+          <button class="setting-btn" data-d="easy">EASY</button>
+          <button class="setting-btn active" data-d="medium">MEDIUM</button>
+          <button class="setting-btn" data-d="hard">HARD</button>
+        </div>
+      </div>
+
+      <!-- FPS -->
+      <div class="setting-group">
+        <span class="setting-label">FRAME RATE</span>
+        <div class="setting-btns">
+          <button class="fps-btn" data-fps="30">30</button>
+          <button class="fps-btn active" data-fps="60">60</button>
+          <button class="fps-btn" data-fps="120">120</button>
+          <button class="fps-btn" data-fps="0">∞</button>
+        </div>
       </div>
     </div>
+
     <button class="btn-primary" id="btn-start-match">START MATCH</button>
     <button class="btn-back" id="btn-back-menu">← BACK</button>
   </div>
 </div>
 
-<!-- ── GAME SCREEN ── -->
+<!-- ── MATCHMAKING ── -->
+<div id="screen-matchmaking" class="screen">
+  <div class="matchmaking-inner">
+    <h2 class="section-title">ONLINE 1v1</h2>
+
+    <!-- Initial choice -->
+    <div id="match-choice">
+      <div class="match-cards">
+        <div class="match-card" id="btn-create-room">
+          <div class="match-card-icon">🏠</div>
+          <div class="match-card-title">CREATE ROOM</div>
+          <div class="match-card-sub">Get a code to share</div>
+        </div>
+        <div class="match-card" id="btn-join-room-open">
+          <div class="match-card-icon">🔗</div>
+          <div class="match-card-title">JOIN ROOM</div>
+          <div class="match-card-sub">Enter a friend's code</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- After creating -->
+    <div id="match-created" class="hidden">
+      <p class="match-label">SHARE THIS CODE WITH YOUR OPPONENT</p>
+      <div class="room-code-display" id="room-code-display">·····</div>
+      <div class="waiting-dots">
+        <span class="waiting-text">Waiting for opponent</span>
+        <span class="dot-anim">...</span>
+      </div>
+    </div>
+
+    <!-- Join panel -->
+    <div id="match-join" class="hidden">
+      <p class="match-label">ENTER ROOM CODE</p>
+      <div class="code-input-row">
+        <input class="code-input" id="room-code-input" type="text" maxlength="5" placeholder="XXXXX" autocomplete="off" spellcheck="false">
+        <button class="btn-primary" id="btn-join-confirm">JOIN</button>
+      </div>
+      <p class="room-error hidden" id="room-error">Room not found or full</p>
+    </div>
+
+    <button class="btn-back" id="btn-back-matchmaking">← BACK</button>
+  </div>
+</div>
+
+<!-- ── GAME ── -->
 <div id="screen-game" class="screen">
   <div class="game-wrap">
     <div class="hud-top">
       <div class="score-block left">
-        <span class="score-label">CPU</span>
-        <span class="score-num" id="score-ai">0</span>
+        <span class="score-label" id="label-left">CPU</span>
+        <span class="score-num"  id="score-left">0</span>
       </div>
       <div class="hud-center">
         <span class="win-target">FIRST TO 7</span>
+        <div class="fps-indicator" id="fps-indicator"></div>
       </div>
       <div class="score-block right">
-        <span class="score-num" id="score-player">0</span>
-        <span class="score-label">YOU</span>
+        <span class="score-num"  id="score-right">0</span>
+        <span class="score-label" id="label-right">YOU</span>
       </div>
     </div>
 
@@ -63,48 +125,38 @@
       <canvas id="game-canvas" width="900" height="550"></canvas>
       <div id="crt-overlay"></div>
 
-      <!-- Ability HUDs drawn outside canvas for CSS ring animations -->
       <div class="ability-hud left-hud" id="hud-ai">
         <div class="ability-icon" id="ai-ability-icon"></div>
         <svg class="cooldown-ring" viewBox="0 0 44 44">
-          <circle class="ring-bg" cx="22" cy="22" r="18"/>
-          <circle class="ring-fill" id="ai-ring" cx="22" cy="22" r="18"/>
+          <circle class="ring-bg"   cx="22" cy="22" r="18"/>
+          <circle class="ring-fill" cx="22" cy="22" r="18" id="ai-ring"/>
         </svg>
         <span class="cooldown-label" id="ai-cooldown-label"></span>
       </div>
+
       <div class="ability-hud right-hud" id="hud-player">
         <div class="ability-icon" id="player-ability-icon"></div>
         <svg class="cooldown-ring" viewBox="0 0 44 44">
-          <circle class="ring-bg" cx="22" cy="22" r="18"/>
-          <circle class="ring-fill" id="player-ring" cx="22" cy="22" r="18"/>
+          <circle class="ring-bg"   cx="22" cy="22" r="18"/>
+          <circle class="ring-fill" cx="22" cy="22" r="18" id="player-ring"/>
         </svg>
         <span class="cooldown-label" id="player-cooldown-label"></span>
       </div>
 
       <div id="ability-flash" class="ability-flash"></div>
-      <div id="space-hint" class="space-hint">SPACE to use ability</div>
+      <div id="space-hint" class="space-hint">SPACE to activate ability</div>
     </div>
   </div>
 </div>
 
-<!-- ── ONLINE COMING SOON ── -->
-<div id="screen-online" class="screen">
-  <div class="coming-soon">
-    <div class="cs-icon">🌐</div>
-    <h2>ONLINE 1v1</h2>
-    <p>Coming soon — infrastructure is ready,<br>matchmaking launching next update.</p>
-    <button class="btn-back" id="btn-back-online">← BACK</button>
-  </div>
-</div>
-
-<!-- ── GAME OVER SCREEN ── -->
+<!-- ── GAME OVER ── -->
 <div id="screen-gameover" class="screen">
   <div class="gameover-inner">
     <div class="go-icon" id="go-icon"></div>
     <h2 id="go-title">YOU WIN!</h2>
     <div class="go-score" id="go-score">7 — 3</div>
     <div class="go-buttons">
-      <button class="btn-primary" id="btn-replay">PLAY AGAIN</button>
+      <button class="btn-primary"   id="btn-replay">PLAY AGAIN</button>
       <button class="btn-secondary" id="btn-go-menu">MAIN MENU</button>
     </div>
   </div>

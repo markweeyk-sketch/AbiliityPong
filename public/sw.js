@@ -1,4 +1,4 @@
-const CACHE = 'pong-abilities-v1';
+const CACHE = 'pong-abilities-v3';
 const ASSETS = [
   '/',
   '/index.html',
