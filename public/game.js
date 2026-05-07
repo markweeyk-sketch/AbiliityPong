@@ -1,5 +1,5 @@
 // ── Online mode — flip to true to route through Socket.io ──
-const ONLINE_MODE = false;
+const ONLINE_MODE = true;
 
 const Game = (() => {
   const canvas = document.getElementById('game-canvas');
