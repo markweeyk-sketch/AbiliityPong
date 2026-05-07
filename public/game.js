@@ -26,6 +26,8 @@ const Game = (() => {
   // ── Local input & presentation state ──
   let paddleY = H / 2 - PAD_H / 2; // absolute paddle position, driven by pointer lock
   let pointerLocked = false;
+  let lockJustAcquired = false;     // skip the first spurious event on lock grant
+  const MAX_MOVE_PER_EVENT = 40;    // px cap — prevents snap-to-corner on fast sweeps
   let particles = [];
   let flashTimer = 0;
   let shieldParticles = [];
@@ -98,12 +100,16 @@ const Game = (() => {
 
   document.addEventListener('pointerlockchange', () => {
     pointerLocked = document.pointerLockElement === canvas;
+    if (pointerLocked) lockJustAcquired = true;
     _updateLockHint();
   });
 
   document.addEventListener('mousemove', e => {
     if (!pointerLocked || !running) return;
-    paddleY = Math.max(0, Math.min(H - PAD_H, paddleY + e.movementY));
+    // Skip the first event — browsers fire it with accumulated pre-lock movement
+    if (lockJustAcquired) { lockJustAcquired = false; return; }
+    const delta = Math.max(-MAX_MOVE_PER_EVENT, Math.min(MAX_MOVE_PER_EVENT, e.movementY));
+    paddleY = Math.max(0, Math.min(H - PAD_H, paddleY + delta));
   });
 
   document.addEventListener('keydown', e => {
