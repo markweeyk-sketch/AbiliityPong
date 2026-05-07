@@ -1,5 +1,7 @@
-// ── Online mode — flip to true to route through Socket.io ──
+// ── Online mode — driven by GameState.gameMode at runtime, not this flag ──
+// Keep for legacy reference; actual branching uses isOnline() below.
 const ONLINE_MODE = true;
+const isOnline = () => GameState.gameMode === 'online';
 
 const Game = (() => {
   const canvas = document.getElementById('game-canvas');
@@ -92,13 +94,13 @@ const Game = (() => {
   document.getElementById('canvas-wrap').addEventListener('mousemove', e => {
     const rect = canvas.getBoundingClientRect();
     mouseY = e.clientY - rect.top;
-    if (ONLINE_MODE && socket) socket.emit('player_input', { mouseY });
+    if (isOnline() && socket) socket.emit('player_input', { mouseY });
   });
 
   document.addEventListener('keydown', e => {
     if (e.code !== 'Space' || !running) return;
     e.preventDefault();
-    if (ONLINE_MODE && socket) {
+    if (isOnline() && socket) {
       socket.emit('ability_activate');
     } else {
       _activateAbility('player');
@@ -116,7 +118,7 @@ const Game = (() => {
     lastPhysicsTime = ts;
 
     // Physics — always 60Hz, independent of render rate
-    if (!ONLINE_MODE && state) {
+    if (!isOnline() && state) {
       accumulator += elapsed;
       while (accumulator >= PHYSICS_STEP) {
         _updateState(PHYSICS_STEP);
@@ -297,7 +299,7 @@ const Game = (() => {
 
   // ── Draw ──
   function _draw() {
-    const online = ONLINE_MODE && onlineState;
+    const online = isOnline() && onlineState;
 
     // Resolve draw values from whichever state source is active
     const ball      = online ? onlineState.ball    : state.ball;
@@ -405,7 +407,7 @@ const Game = (() => {
 
   // ── HUD ──
   function _updateHUD() {
-    if (ONLINE_MODE && onlineState) {
+    if (isOnline() && onlineState) {
       const s = onlineState;
       const myScore  = onlineSide === 'p1' ? s.p1Score : s.p2Score;
       const oppScore = onlineSide === 'p1' ? s.p2Score : s.p1Score;
