@@ -333,6 +333,7 @@ body {
   border: 1px solid rgba(124,58,237,0.3);
   border-radius: 4px;
   box-shadow: 0 0 60px rgba(124,58,237,0.15), 0 0 120px rgba(79,70,229,0.08);
+  cursor: none;
 }
 
 #crt-overlay {

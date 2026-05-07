@@ -24,7 +24,8 @@ const Game = (() => {
   let state = null;
 
   // ── Local input & presentation state ──
-  let mouseY = H / 2;
+  let paddleY = H / 2 - PAD_H / 2; // absolute paddle position, driven by pointer lock
+  let pointerLocked = false;
   let particles = [];
   let flashTimer = 0;
   let shieldParticles = [];
@@ -90,13 +91,19 @@ const Game = (() => {
     state.curveForce = 0;
   }
 
-  // ── INPUT ──
-  document.getElementById('canvas-wrap').addEventListener('mousemove', e => {
-    const rect = canvas.getBoundingClientRect();
-    mouseY = e.clientY - rect.top;
-    if (ONLINE_MODE && socket && roomId) {
-      socket.emit('player_input', { roomId, paddleY: mouseY });
-    }
+  // ── POINTER LOCK INPUT ──
+  canvas.addEventListener('click', () => {
+    if (running && !pointerLocked) canvas.requestPointerLock();
+  });
+
+  document.addEventListener('pointerlockchange', () => {
+    pointerLocked = document.pointerLockElement === canvas;
+    _updateLockHint();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!pointerLocked || !running) return;
+    paddleY = Math.max(0, Math.min(H - PAD_H, paddleY + e.movementY));
   });
 
   document.addEventListener('keydown', e => {
@@ -104,16 +111,31 @@ const Game = (() => {
       e.preventDefault();
       _activateAbility('player');
     }
+    // Escape releases pointer lock (browser handles this natively, but
+    // we also listen so we can update our hint)
+    if (e.code === 'Escape') _updateLockHint();
   });
+
+  function _updateLockHint() {
+    const hint = document.getElementById('space-hint');
+    if (!hint) return;
+    if (!pointerLocked && running) {
+      hint.textContent = 'Click to grab mouse control';
+      hint.style.opacity = '1';
+    } else if (pointerLocked) {
+      hint.textContent = 'SPACE to activate ability';
+      hint.style.opacity = state?.playerAbility?.ready ? '1' : '0';
+    }
+  }
 
   // ── UPDATE (server-authoritative logic, can migrate to server.js) ──
   function _updateState(dt) {
     const s = state;
     const cfg = DIFF_CFG[GameState.difficulty];
 
-    // Player paddle
+    // Player paddle — paddleY is maintained directly by pointer lock movementY
     if (!s.playerFrozen) {
-      s.playerY = Math.max(0, Math.min(H - PAD_H, mouseY - PAD_H / 2));
+      s.playerY = paddleY;
     }
 
     // AI paddle
@@ -306,7 +328,8 @@ const Game = (() => {
         break;
       case 'dash':
         if (side === 'player') {
-          s.playerY = Math.max(0, Math.min(H - PAD_H, s.ball.y - PAD_H / 2));
+          paddleY = Math.max(0, Math.min(H - PAD_H, s.ball.y - PAD_H / 2));
+          s.playerY = paddleY;
         } else {
           s.aiY = Math.max(0, Math.min(H - PAD_H, s.ball.y - PAD_H / 2));
         }
@@ -479,25 +502,32 @@ const Game = (() => {
   function _endGame(playerWon) {
     running = false;
     cancelAnimationFrame(animId);
+    if (document.pointerLockElement === canvas) document.exitPointerLock();
     UI.showGameOver(playerWon, state.playerScore, state.aiScore);
   }
 
   // ── PUBLIC ──
   function start() {
     if (animId) cancelAnimationFrame(animId);
-    particles = [];
-    flashTimer = 0;
+    particles      = [];
+    flashTimer     = 0;
     aiDelayCounter = 0;
-    aiTargetY = H / 2;
+    aiTargetY      = H / 2;
+    paddleY        = H / 2 - PAD_H / 2;
+    pointerLocked  = false;
     state = _makeState();
     _resetBall(Math.random() < 0.5 ? 1 : -1);
 
     UI.goTo('screen-game');
     UI.setAbilityIcons(GameState.playerAbilityId, GameState.aiAbilityId);
 
-    running = true;
+    running  = true;
     lastTime = performance.now();
-    animId = requestAnimationFrame(_loop);
+    animId   = requestAnimationFrame(_loop);
+
+    // Request pointer lock immediately — browser requires a user gesture,
+    // and start() is always called from a button click, so this is valid.
+    canvas.requestPointerLock();
 
     if (ONLINE_MODE) _initSocket();
   }
